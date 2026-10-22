@@ -9,6 +9,7 @@ import { lockCard, lockColumn, lockPipeline } from './pipeline-lock';
 import {
   nextColumnPosition,
   compactColumn,
+  openSlot,
   placeAt,
   placeCard,
   requireCard,
@@ -240,7 +241,11 @@ export async function patchCard(
     await requireStatus(tx, tenantId, patch.statusId);
     const destination = patch.columnId;
     const moved = destination !== undefined && destination !== card.columnId;
-    const position = moved ? await placeCard(tx, tenantId, pipelineId, destination) : undefined;
+    const position = moved
+      ? patch.position === undefined
+        ? await placeCard(tx, tenantId, pipelineId, destination)
+        : await openSlot(tx, tenantId, pipelineId, destination, patch.position)
+      : undefined;
     await tx.pipelineCard
       .update({
         where: { id: cardId },

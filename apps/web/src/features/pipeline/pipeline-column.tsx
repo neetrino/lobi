@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
+import { Fragment, useRef, useState, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 
 import { Plus } from 'lucide-react';
 
@@ -54,6 +54,8 @@ export function PipelineColumnView({
   const t = useTranslations('pipeline');
   const [draft, setDraft] = useState<number | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [slot, setSlot] = useState<number | null>(null);
+  const listRef = useRef<HTMLDivElement>(null);
   const width = draft ?? column.widthPx;
   const sum = column.cards.reduce((total, card) => total + card.amount, 0);
   const cardTotal = sourceCount ?? column.cards.length;
@@ -62,8 +64,25 @@ export function PipelineColumnView({
     <section
       className={styles.column}
       style={{ width }}
-      onDragOver={(event) => event.preventDefault()}
-      onDrop={(event) => dropCard(event, onMoveCard)}
+      onDragEnter={rememberDragDepth}
+      onDragOver={(event) => allowCardDrag(event, listRef.current)}
+      onDragLeave={(event) => {
+        releaseDragDepth(event);
+        if (event.currentTarget.dataset.dragDepth === '0') {
+          setSlot(null);
+          if (listRef.current !== null) {
+            listRef.current.dataset.slot = '';
+          }
+        }
+      }}
+      onDrop={(event) => {
+        if (event.defaultPrevented) {
+          return;
+        }
+        clearDragDepth(event.currentTarget);
+        setSlot(null);
+        dropCard(event, onMoveCard);
+      }}
     >
       <header
         className={styles.columnHead}
@@ -106,10 +125,27 @@ export function PipelineColumnView({
       <p className={styles.sum}>
         {formatAmount(sum, locale)} {amountLabel}
       </p>
-      <div className={styles.cards}>
-        {column.cards.map((card) => (
+      <div
+        className={styles.cards}
+        ref={listRef}
+        onDragOver={(event) =>
+          hoverSlot(event, column.cards.length, (next) => setSlot(next), listRef.current)
+        }
+        onDrop={(event) => {
+          event.stopPropagation();
+          clearDragDepth(event.currentTarget.closest('section'));
+          const index = readSlot(listRef.current, slot);
+          setSlot(null);
+          if (listRef.current !== null) {
+            listRef.current.dataset.slot = '';
+          }
+          dropAt(event, column.id, column.cards, index, onSaveCard);
+        }}
+      >
+        {column.cards.map((card, index) => (
+          <Fragment key={card.id}>
+            {slot === index ? <div className={styles.dropSlot} /> : null}
           <PipelineCardView
-            key={card.id}
             card={card}
             index={card.position}
             total={cardTotal}
@@ -124,7 +160,9 @@ export function PipelineColumnView({
             onDelete={() => onDeleteCard(card.id)}
             onConvert={() => onConvertCard(card.id)}
           />
+          </Fragment>
         ))}
+        {slot === column.cards.length ? <div className={styles.dropSlot} /> : null}
       </div>
       <footer className={styles.columnFoot}>
         <AddCard onCreate={onCreateCard} />
@@ -171,6 +209,103 @@ function dropCard(event: DragEvent, onMove: (cardId: string) => void): void {
   if (cardId !== '') {
     onMove(cardId);
   }
+}
+
+function readSlot(list: HTMLDivElement | null, fallback: number | null): number | null {
+  const raw = list?.dataset.slot ?? '';
+  if (raw === '') {
+    return fallback;
+  }
+  const index = Number(raw);
+  return Number.isInteger(index) ? index : fallback;
+}
+
+function dropAt(
+  event: DragEvent,
+  columnId: string,
+  cards: PipelineColumn['cards'],
+  slot: number | null,
+  onSave: (cardId: string, patch: CardUpdate) => void,
+): void {
+  event.preventDefault();
+  const cardId = event.dataTransfer.getData('text/plain');
+  if (cardId === '' || slot === null) {
+    return;
+  }
+  const from = cards.findIndex((card) => card.id === cardId);
+  const position = from >= 0 && slot > from ? slot - 1 : slot;
+  if (from >= 0 && position === from) {
+    return;
+  }
+  onSave(cardId, from >= 0 ? { position } : { columnId, position });
+}
+
+function allowCardDrag(event: DragEvent, list: HTMLDivElement | null): void {
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  event.currentTarget.classList.add(styles.columnOver);
+  scrollList(list, event.clientY);
+}
+
+function hoverSlot(
+  event: DragEvent,
+  count: number,
+  setSlot: (slot: number | null) => void,
+  list: HTMLDivElement | null,
+): void {
+  event.preventDefault();
+  event.stopPropagation();
+  event.dataTransfer.dropEffect = 'move';
+  const cards = list === null ? [] : [...list.querySelectorAll('article')];
+  const index = cards.findIndex((card) => {
+    const box = card.getBoundingClientRect();
+    return event.clientY < box.top + box.height / 2;
+  });
+  const next = index === -1 ? count : index;
+  if (list !== null && list.dataset.slot === String(next)) {
+    scrollList(list, event.clientY);
+    return;
+  }
+  if (list !== null) {
+    list.dataset.slot = String(next);
+  }
+  setSlot(next);
+  scrollList(list, event.clientY);
+}
+
+function scrollList(list: HTMLDivElement | null, clientY: number): void {
+  if (list === null) {
+    return;
+  }
+  const box = list.getBoundingClientRect();
+  const edge = 36;
+  if (clientY < box.top + edge) {
+    list.scrollTop -= 12;
+  } else if (clientY > box.bottom - edge) {
+    list.scrollTop += 12;
+  }
+}
+
+function rememberDragDepth(event: DragEvent<HTMLElement>): void {
+  const depth = Number(event.currentTarget.dataset.dragDepth ?? '0') + 1;
+  event.currentTarget.dataset.dragDepth = String(depth);
+  event.currentTarget.classList.add(styles.columnOver);
+}
+
+function releaseDragDepth(event: DragEvent<HTMLElement>): void {
+  const depth = Number(event.currentTarget.dataset.dragDepth ?? '1') - 1;
+  event.currentTarget.dataset.dragDepth = String(Math.max(0, depth));
+  if (depth <= 0) {
+    event.currentTarget.classList.remove(styles.columnOver);
+  }
+}
+
+function clearDragDepth(node: Element | null): void {
+  if (!(node instanceof HTMLElement)) {
+    return;
+  }
+  node.dataset.dragDepth = '0';
+  node.classList.remove(styles.columnOver);
 }
 
 function startResize(

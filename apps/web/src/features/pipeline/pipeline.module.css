@@ -312,7 +312,8 @@
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  overscroll-behavior: contain;
+  overscroll-behavior-x: auto;
+  overscroll-behavior-y: contain;
   padding: 0 10px 8px;
   scrollbar-width: none;
 }
@@ -411,6 +412,22 @@
   background: #f6f6f6;
   box-shadow: none;
   cursor: grab;
+}
+
+.cardDragging {
+  opacity: 0.45;
+  transform: scale(0.985);
+}
+
+.columnOver {
+  box-shadow: 0 0 0 2px #9cc05c, 0 1px 12px rgb(27 38 48 / 6%);
+}
+
+.dropSlot {
+  height: 10px;
+  border-radius: 8px;
+  background: #9cc05c;
+  pointer-events: none;
 }
 
 .card:hover,

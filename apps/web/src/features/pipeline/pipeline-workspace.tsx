@@ -42,6 +42,7 @@ export function PipelineWorkspace({ kind }: { kind: PipelineKindName }) {
   const [board, setBoard] = useState<PipelineBoard | null>(null);
   const [error, setError] = useState<string | null>(null);
   const boardQueue = useRef(createBoardQueue());
+  const boardRevision = useRef(0);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -74,13 +75,31 @@ export function PipelineWorkspace({ kind }: { kind: PipelineKindName }) {
     return () => controller.abort();
   }, [kind, locale, router, t]);
 
-  function change(action: () => Promise<PipelineBoard>): Promise<void> {
+  function change(
+    action: () => Promise<PipelineBoard>,
+    apply?: (current: PipelineBoard) => PipelineBoard,
+  ): Promise<void> {
+    const revision = boardRevision.current + 1;
+    boardRevision.current = revision;
+    let previous: PipelineBoard | null = null;
+    if (apply !== undefined) {
+      setBoard((current) => {
+        previous = current;
+        return current === null ? current : apply(current);
+      });
+    }
     return boardQueue.current.run(action).then(
       (next) => {
+        if (boardRevision.current !== revision) {
+          return;
+        }
         setBoard(next);
         setError(null);
       },
       (reason: unknown) => {
+        if (boardRevision.current === revision && previous !== null) {
+          setBoard(previous);
+        }
         if (isSignedOut(reason)) {
           router.replace(`/${locale}/login`);
           return;
@@ -165,14 +184,37 @@ function PipelineView({
   locale: string;
   userId: string | null;
   canConfigure: boolean;
-  onChange: (action: () => Promise<PipelineBoard>) => Promise<void>;
+  onChange: (
+    action: () => Promise<PipelineBoard>,
+    apply?: (current: PipelineBoard) => PipelineBoard,
+  ) => Promise<void>;
 }) {
   const t = useTranslations('pipeline');
   const [query, setQuery] = useState('');
   const [statusId, setStatusId] = useState('');
+  const boardRef = useRef<HTMLDivElement>(null);
   const colors = stageColors(board.columns.length);
   const cards = board.columns.flatMap((column) => shownCards(column.cards, query, statusId));
   const total = cards.reduce((sum, card) => sum + card.amount, 0);
+  useEffect(() => {
+    const node = boardRef.current;
+    if (node === null) {
+      return;
+    }
+    const onWheel = (event: WheelEvent) => {
+      if (node.scrollWidth <= node.clientWidth) {
+        return;
+      }
+      const horizontal = Math.abs(event.deltaX) > Math.abs(event.deltaY);
+      if (!horizontal && !event.shiftKey) {
+        return;
+      }
+      event.preventDefault();
+      node.scrollLeft += horizontal ? event.deltaX : event.deltaY;
+    };
+    node.addEventListener('wheel', onWheel, { passive: false });
+    return () => node.removeEventListener('wheel', onWheel);
+  }, [board.columns.length]);
   return (
     <div className={styles.page}>
       <header className={styles.head}>
@@ -212,7 +254,7 @@ function PipelineView({
         onCreateColumn={(name) => void onChange(() => createColumn(board.kind, name))}
         whiteSearch
       />
-      <div className={styles.board}>
+      <div className={styles.board} ref={boardRef}>
         {board.columns.map((column, stageIndex) => (
           <PipelineColumnView
             key={column.id}
@@ -231,10 +273,21 @@ function PipelineView({
             onCreateCard={(draft) =>
               void onChange(() => createCard(board.kind, { ...draft, columnId: column.id }))
             }
-            onMoveCard={(cardId) => void onChange(() => moveCard(board.kind, cardId, column.id))}
+            onMoveCard={(cardId) =>
+              void onChange(
+                () => moveCard(board.kind, cardId, column.id),
+                (current) => relocateCard(current, cardId, column.id),
+              )
+            }
             onDeleteCard={(cardId) => void onChange(() => deleteCard(board.kind, cardId))}
             onSaveCard={(cardId, patch) =>
-              void onChange(() => updateCard(board.kind, cardId, patch))
+              void onChange(
+                () => updateCard(board.kind, cardId, patch),
+                patch.position === undefined && patch.columnId === undefined
+                  ? undefined
+                  : (current) =>
+                      relocateCard(current, cardId, patch.columnId ?? column.id, patch.position),
+              )
             }
             onConvertCard={(cardId) => void onChange(() => convertLead(cardId))}
             canConfigure={canConfigure}
@@ -243,6 +296,46 @@ function PipelineView({
       </div>
     </div>
   );
+}
+
+function relocateCard(
+  board: PipelineBoard,
+  cardId: string,
+  columnId: string,
+  position?: number,
+): PipelineBoard {
+  const moving = board.columns.flatMap((column) => column.cards).find((card) => card.id === cardId);
+  if (moving === undefined) {
+    return board;
+  }
+  const home = board.columns.find((column) => column.cards.some((card) => card.id === cardId));
+  if (position === undefined && home?.id === columnId) {
+    return board;
+  }
+  const columns = board.columns.map((column) => ({
+    ...column,
+    cards: column.cards
+      .filter((card) => card.id !== cardId)
+      .map((card, index) => ({ ...card, position: index })),
+  }));
+  return {
+    ...board,
+    columns: columns.map((column) => {
+      if (column.id !== columnId) {
+        return column;
+      }
+      const index =
+        position === undefined
+          ? column.cards.length
+          : Math.max(0, Math.min(position, column.cards.length));
+      const cards = [...column.cards];
+      cards.splice(index, 0, { ...moving, position: index });
+      return {
+        ...column,
+        cards: cards.map((card, cardIndex) => ({ ...card, position: cardIndex })),
+      };
+    }),
+  };
 }
 
 function isSignedOut(reason: unknown): boolean {

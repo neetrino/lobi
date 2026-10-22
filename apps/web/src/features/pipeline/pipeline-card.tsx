@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState, type DragEvent as ReactDragEvent, type FormEvent } from 'react';
 
 import { listContacts } from '../contacts/contacts-api';
 import type { Contact } from '../contacts/contact';
@@ -56,7 +56,7 @@ export function PipelineCardView({
     <article
       className={styles.card}
       draggable={!editing}
-      onDragStart={(event) => event.dataTransfer.setData('text/plain', card.id)}
+      onDragStart={(event) => startCardDrag(event, card.id, styles.cardDragging)}
     >
       <div className={styles.cardTop}>
       <strong className={styles.cardTitle}>{card.title}</strong>
@@ -422,6 +422,25 @@ function SheetCancel({ label }: { label: string }) {
       {label}
     </button>
   );
+}
+
+function startCardDrag(event: ReactDragEvent<HTMLElement>, cardId: string, draggingClass: string): void {
+  const target = event.target;
+  if (target instanceof Element && target.closest('button, a, input, textarea, select, label')) {
+    event.preventDefault();
+    return;
+  }
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', cardId);
+  const card = event.currentTarget;
+  const box = card.getBoundingClientRect();
+  event.dataTransfer.setDragImage(card, Math.max(16, event.clientX - box.left), Math.max(16, event.clientY - box.top));
+  card.classList.add(draggingClass);
+  const end = () => {
+    card.classList.remove(draggingClass);
+    card.removeEventListener('dragend', end);
+  };
+  card.addEventListener('dragend', end);
 }
 
 function initials(name: string): string {

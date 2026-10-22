@@ -39,6 +39,30 @@ export async function placeCard(
   return (last._max.position ?? -1) + 1;
 }
 
+/** Opens a free index in a column. `index` may be one past the last card. */
+export async function openSlot(
+  tx: Tx,
+  tenantId: TenantId,
+  pipelineId: string,
+  columnId: string,
+  index: number,
+): Promise<number> {
+  await lockColumn(tx, columnId);
+  await requireColumn(tx, tenantId, pipelineId, columnId);
+  const count = await tx.pipelineCard.count({ where: { tenantId, columnId } });
+  const target = Math.max(0, Math.min(index, count));
+  const gap = 1_000_000;
+  await tx.pipelineCard.updateMany({
+    where: { tenantId, columnId, position: { gte: target } },
+    data: { position: { increment: gap } },
+  });
+  await tx.pipelineCard.updateMany({
+    where: { tenantId, columnId, position: { gte: target + gap } },
+    data: { position: { decrement: gap - 1 } },
+  });
+  return target;
+}
+
 /** Moves one card inside its column without breaking the unique position. */
 export async function placeAt(
   tx: Tx,
