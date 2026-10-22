@@ -3,7 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Fragment, useRef, useState, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 
-import { Plus } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 
 import { ConfirmDialog } from '../../ui/confirm/confirm-dialog';
 import { PipelineCardView } from './pipeline-card';
@@ -108,7 +108,7 @@ export function PipelineColumnView({
             aria-label={t('deleteColumn')}
             onClick={() => setConfirming(true)}
           >
-            ×
+            <Trash2 size={16} strokeWidth={2} aria-hidden="true" />
           </button>
         ) : null}
       </header>
