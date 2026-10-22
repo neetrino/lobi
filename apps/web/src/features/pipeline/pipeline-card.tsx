@@ -59,69 +59,71 @@ export function PipelineCardView({
       onDragStart={(event) => event.dataTransfer.setData('text/plain', card.id)}
     >
       <div className={styles.cardTop}>
-        <strong>{card.title}</strong>
-        <span className={styles.cardTools}>
-          <span className={styles.cardToolRow}>
-            {card.createdByName === null ? null : (
-              <span
-                className={styles.avatar}
-                title={card.createdByName}
-                aria-label={card.createdByName}
-              >
-                {initials(card.createdByName)}
-              </span>
-            )}
-            <button
-              type="button"
-              className={
-                card.priority === 'URGENT'
-                  ? `${styles.flagButton} ${styles.flagOn}`
-                  : styles.flagButton
-              }
-              aria-pressed={card.priority === 'URGENT'}
-              aria-label={card.priority === 'URGENT' ? t('clearUrgent') : t('markUrgent')}
-              onClick={() => onSave({ priority: card.priority === 'URGENT' ? 'NORMAL' : 'URGENT' })}
-            >
-              <FlagIcon />
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label={t('editCard')}
-              onClick={() => setEditing(true)}
-            >
-              <Pencil size={14} aria-hidden="true" />
-            </button>
-            <button
-              type="button"
-              className={styles.iconButton}
-              aria-label={t('deleteCard')}
-              onClick={() => setConfirming(true)}
-            >
-              <X size={14} aria-hidden="true" />
-            </button>
+      <strong className={styles.cardTitle}>{card.title}</strong>
+      <span className={styles.cardSide}>
+      <span className={styles.cardToolRow}>
+        {card.createdByName === null ? null : (
+          <span
+            className={styles.avatar}
+            title={card.createdByName}
+            aria-label={card.createdByName}
+          >
+            {initials(card.createdByName)}
           </span>
-          <span className={styles.cardIcons}>
-            <PipelineNotes
-              cardId={card.id}
-              cardTitle={card.title}
-              kind={kind}
-              initialCount={card.noteCount}
-            />
-            <PipelineChat
-              cardId={card.id}
-              cardTitle={card.title}
-              kind={kind}
-              initialCount={card.messageCount}
-            />
-          </span>
-        </span>
+        )}
+        <button
+          type="button"
+          className={
+            card.priority === 'URGENT'
+              ? `${styles.flagButton} ${styles.flagOn}`
+              : styles.flagButton
+          }
+          aria-pressed={card.priority === 'URGENT'}
+          aria-label={card.priority === 'URGENT' ? t('clearUrgent') : t('markUrgent')}
+          onClick={() => onSave({ priority: card.priority === 'URGENT' ? 'NORMAL' : 'URGENT' })}
+        >
+          <FlagIcon />
+        </button>
+        <button
+          type="button"
+          className={styles.iconButton}
+          aria-label={t('editCard')}
+          onClick={() => setEditing(true)}
+        >
+          <Pencil size={14} aria-hidden="true" />
+        </button>
+        <button
+          type="button"
+          className={styles.iconButton}
+          aria-label={t('deleteCard')}
+          onClick={() => setConfirming(true)}
+        >
+          <X size={14} aria-hidden="true" />
+        </button>
+      </span>
+      <span className={styles.cardIcons}>
+        <PipelineNotes
+          cardId={card.id}
+          cardTitle={card.title}
+          kind={kind}
+          initialCount={card.noteCount}
+        />
+        <PipelineChat
+          cardId={card.id}
+          cardTitle={card.title}
+          kind={kind}
+          initialCount={card.messageCount}
+        />
+      </span>
+      </span>
       </div>
-      <b>
-        {new Intl.NumberFormat(locale).format(card.amount)} {amountLabel}
-      </b>
-      {card.company === '' ? null : <small>{card.company}</small>}
-      <CardMarks card={card} locale={locale} stageColors={stageColors} stageIndex={stageIndex} />
+      <div className={styles.cardCopy}>
+        <b>
+          {new Intl.NumberFormat(locale).format(card.amount)} {amountLabel}
+        </b>
+        {card.company === '' ? null : <small>{card.company}</small>}
+        <CardMarks card={card} locale={locale} stageColors={stageColors} stageIndex={stageIndex} />
+      </div>
       <div className={styles.cardActions}>
         <button
           type="button"
