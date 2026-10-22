@@ -100,6 +100,19 @@
   padding: 0 14px;
 }
 
+.dateControls button,
+.dateControls button:hover {
+  background: #fff;
+}
+
+.dateControls > button {
+  width: var(--control-height);
+  height: var(--control-height);
+  min-height: var(--control-height);
+  padding: 0;
+  border-radius: 999px;
+}
+
 .table {
   width: 100%;
   border-collapse: separate;
@@ -156,6 +169,9 @@
   min-height: 0;
   gap: 4px;
   overflow: hidden;
+  padding: 12px;
+  border-radius: 18px;
+  background: #fff;
 }
 
 .pageFit .hour {

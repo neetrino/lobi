@@ -31,7 +31,15 @@
 
 .root.fit .trigger {
   width: max-content;
-  padding-right: 28px;
+  justify-content: center;
+  padding-right: 16px;
+  padding-left: 16px;
+  background: #fff;
+}
+
+.root.fit .trigger:hover,
+.root.fit .triggerOpen {
+  background: #fff;
 }
 
 .root .trigger:hover,
