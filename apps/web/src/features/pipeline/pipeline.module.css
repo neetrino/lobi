@@ -93,7 +93,7 @@
   overflow-x: auto;
   overflow-y: hidden;
   overscroll-behavior-x: contain;
-  padding-bottom: 6px;
+  padding-bottom: 12px;
 }
 
 .column {
@@ -106,7 +106,7 @@
   min-height: 0;
   overflow: hidden;
   padding: 0;
-  border-radius: 14px 14px 0 0;
+  border-radius: 14px;
   background: #fff;
   box-shadow: 0 1px 12px rgb(27 38 48 / 6%);
 }
