@@ -3,8 +3,9 @@
 import { useTranslations } from 'next-intl';
 import { useState, type DragEvent, type PointerEvent as ReactPointerEvent } from 'react';
 
+import { Plus } from 'lucide-react';
+
 import { ConfirmDialog } from '../../ui/confirm/confirm-dialog';
-import glass from '../../ui/glass/glass.module.css';
 import { PipelineCardView } from './pipeline-card';
 import { NewCardSheet } from './pipeline-new-card';
 import { clampColumnWidth } from './pipeline-width';
@@ -59,14 +60,14 @@ export function PipelineColumnView({
   const headerColor = stageColors[stageIndex];
   return (
     <section
-      className={`${styles.column} ${glass.panel} ${glass.medium}`}
+      className={styles.column}
       style={{ width }}
       onDragOver={(event) => event.preventDefault()}
       onDrop={(event) => dropCard(event, onMoveCard)}
     >
       <header
         className={styles.columnHead}
-        style={headerColor === undefined ? undefined : { background: headerColor }}
+        style={{ background: headerColor ?? '#ec8e0b' }}
       >
         <input
           className={styles.columnName}
@@ -148,7 +149,8 @@ function AddCard({
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" data-tone="primary" onClick={() => setOpen(true)}>
+      <button type="button" className={styles.addCard} onClick={() => setOpen(true)}>
+        <Plus size={15} aria-hidden="true" />
         {t('addCard')}
       </button>
       {open ? <NewCardSheet onClose={() => setOpen(false)} onCreate={onCreate} /> : null}

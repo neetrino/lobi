@@ -5,8 +5,9 @@ import { useEffect, useState, type FormEvent } from 'react';
 
 import { listContacts } from '../contacts/contacts-api';
 import type { Contact } from '../contacts/contact';
+import { Pencil, X } from 'lucide-react';
+
 import { ConfirmDialog } from '../../ui/confirm/confirm-dialog';
-import glass from '../../ui/glass/glass.module.css';
 import { useSheetDismiss } from '../../ui/overlay/sheet-dismiss';
 import { DateField } from '../../ui/calendar/calendar';
 import { Select, type SelectOption } from '../../ui/select/select';
@@ -53,7 +54,7 @@ export function PipelineCardView({
   const [editing, setEditing] = useState(false);
   return (
     <article
-      className={`${styles.card} ${glass.panel} ${glass.soft}`}
+      className={styles.card}
       draggable={!editing}
       onDragStart={(event) => event.dataTransfer.setData('text/plain', card.id)}
     >
@@ -89,7 +90,7 @@ export function PipelineCardView({
               aria-label={t('editCard')}
               onClick={() => setEditing(true)}
             >
-              ✎
+              <Pencil size={14} aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -97,7 +98,7 @@ export function PipelineCardView({
               aria-label={t('deleteCard')}
               onClick={() => setConfirming(true)}
             >
-              ×
+              <X size={14} aria-hidden="true" />
             </button>
           </span>
           <span className={styles.cardIcons}>
@@ -220,7 +221,7 @@ function CardMarks({
           <span
             key={color + String(index)}
             className={styles.stage}
-            style={{ background: index <= stageIndex ? color : '#e7eaf0' }}
+            style={{ background: index <= stageIndex ? color : '#fff' }}
           />
         ))}
       </div>

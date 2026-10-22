@@ -101,10 +101,14 @@
   display: flex;
   flex: none;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
   height: 100%;
   min-height: 0;
-  padding: 12px;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 14px 14px 0 0;
+  background: #fff;
+  box-shadow: 0 1px 12px rgb(27 38 48 / 6%);
 }
 
 .columnHead {
@@ -117,12 +121,13 @@
   flex: 1;
   min-width: 0;
   height: 36px;
-  padding: 0 8px;
+  padding: 0;
   border: 0;
   border-radius: 8px;
   background: transparent;
   color: inherit;
   font: inherit;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -134,19 +139,23 @@
 .count {
   display: inline-flex;
   align-items: center;
-  height: 24px;
-  padding: 0 8px;
-  border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  font-size: 12px;
-  font-weight: 700;
+  justify-content: center;
+  width: 21px;
+  height: 21px;
+  padding: 0;
+  border-radius: 10.5px;
+  background: rgb(255 255 255 / 20%);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
 }
 
 .sum {
-  color: #667085;
-  font-size: 12px;
-  font-weight: 600;
+  margin: 0;
+  padding: 20px 13px 8px;
+  color: #5b6470;
+  font-size: 10px;
+  font-weight: 400;
 }
 
 .iconButton {
@@ -267,9 +276,11 @@
 }
 
 .columnHead {
-  margin: -12px -12px 0;
-  padding: 10px 12px;
-  border-radius: 15px 15px 0 0;
+  box-sizing: border-box;
+  height: 49px;
+  margin: 0;
+  padding: 0 16px;
+  border-radius: 16px;
   color: #fff;
 }
 
@@ -285,20 +296,24 @@
   color: inherit;
 }
 .columnHead .iconButton {
+  width: auto;
+  height: 23px;
   border-color: transparent;
   background: transparent;
+  font-size: 15px;
+  font-weight: 500;
 }
 
 .cards {
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
-  padding: 8px 4px 16px;
+  padding: 0 10px 8px;
   scrollbar-width: none;
 }
 
@@ -312,16 +327,30 @@
   position: relative;
   z-index: 1;
   flex: none;
-  margin: 0 -12px 0;
-  padding: 12px;
-  border-top: 1px solid rgb(255 255 255 / 55%);
+  margin: 0;
+  padding: 8px 10px 12px;
   background: transparent;
 }
 
-.columnFoot .add,
-.columnFoot .field,
-.columnFoot button {
+.addCard {
+  display: flex;
   width: 100%;
+  height: 37px;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 0;
+  border: 0;
+  border-radius: 20px;
+  background: var(--shell-olive);
+  color: #29372d;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.addCard svg {
+  width: 15px;
+  height: 15px;
 }
 
 .cardSheet {
@@ -375,24 +404,33 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: 12px;
+  padding: 13px 12px;
+  border-radius: 18px;
+  background: #f6f6f6;
+  box-shadow: none;
   cursor: grab;
 }
 
 .card:hover,
 .card:focus-within {
-  box-shadow: 0 10px 18px rgb(16 24 40 / 10%);
+  box-shadow: none;
 }
 
 .card strong {
-  font-size: 14px;
+  color: #12171b;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 14px;
 }
 .card b {
-  font-size: 14px;
-  letter-spacing: -0.02em;
+  color: #12171b;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0;
 }
 .card small {
-  color: #667085;
+  color: #747b84;
+  font-size: 11px;
 }
 
 .cardMeta {
@@ -417,15 +455,17 @@
   gap: 4px;
 }
 
-.flagButton {
+.flagButton,
+.card .iconButton {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 30px;
   padding: 0;
   place-items: center;
-  border: 1px solid #e7eaf0;
-  border-radius: 8px;
+  border: 1px solid #edf0f1;
+  border-radius: 7px;
   background: #fff;
+  box-shadow: 0 1px 2.5px rgb(30 40 50 / 5%);
   color: #98a2b3;
   cursor: pointer;
 }
@@ -454,15 +494,15 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border: 2px solid #fff;
-  border-radius: 999px;
-  outline: 2px solid #1d4ed8;
-  background: #dbeafe;
-  color: #1d4ed8;
-  font-size: 12px;
-  font-weight: 700;
+  width: 35px;
+  height: 35px;
+  border: 2px solid #1266dc;
+  border-radius: 17.5px;
+  outline: 0;
+  background: #eef5f5;
+  color: #215bb4;
+  font-size: 11px;
+  font-weight: 400;
 }
 
 .statusCorner {
@@ -470,9 +510,19 @@
   justify-content: flex-end;
 }
 
+.statusCorner button {
+  height: 25px;
+  min-height: 25px;
+  padding: 0 10px;
+  border-radius: 13px;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 600;
+}
+
 .when {
-  color: #be123c;
-  font-size: 12px;
+  color: #c81d43;
+  font-size: 10px;
   font-weight: 700;
 }
 
@@ -481,9 +531,9 @@
   gap: 4px;
 }
 .stage {
-  width: 18px;
-  height: 4px;
-  border-radius: 999px;
+  width: 17px;
+  height: 3px;
+  border-radius: 3px;
 }
 
 .cardTop {
@@ -499,7 +549,23 @@
 
 .cardActions {
   display: flex;
-  gap: 4px;
+  gap: 5px;
+}
+
+.cardActions button {
+  height: 31px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 16px;
+  background: rgb(255 255 255 / 82%);
+  color: #23272a;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.cardActions button:disabled {
+  background: rgb(255 255 255 / 43%);
+  color: #a1a4a8;
 }
 
 .cardEditor {
@@ -638,18 +704,18 @@
 .chatButton {
   position: relative;
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 31px;
+  height: 31px;
   padding: 3px;
   place-items: center;
-  border: 1px solid rgba(37, 99, 235, 0.2);
-  border-radius: 12px;
-  background: rgba(239, 246, 255, 0.86);
+  border: 1px solid #dce4f2;
+  border-radius: 9px;
+  background: #f8fbff;
   cursor: pointer;
 }
 .chatIcon {
-  width: 28px;
-  height: 28px;
+  width: 22px;
+  height: 22px;
   object-fit: contain;
   border-radius: 8px;
 }
@@ -798,18 +864,18 @@
 .noteButton {
   position: relative;
   display: grid;
-  width: 36px;
-  height: 36px;
+  width: 27px;
+  height: 27px;
   padding: 3px;
   place-items: center;
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 12px;
-  background: rgba(255, 251, 235, 0.9);
+  border: 1px solid rgb(255 144 97 / 23%);
+  border-radius: 9px;
+  background: rgb(252 211 77 / 27%);
   cursor: pointer;
 }
 .noteIcon {
-  width: 28px;
-  height: 28px;
+  width: 17px;
+  height: 17px;
   object-fit: contain;
 }
 .noteBadge {
