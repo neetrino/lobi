@@ -50,12 +50,14 @@ export function SheetFrame({
 /** Shared New-reservation layout: titled header, scroll body, optional footer. */
 export function SheetChrome({
   title,
+  headerAction,
   footer,
   children,
   as = 'div',
   onSubmit,
 }: {
   title: ReactNode;
+  headerAction?: ReactNode;
   footer?: ReactNode;
   children: ReactNode;
   as?: 'div' | 'form' | 'aside' | 'section';
@@ -65,6 +67,7 @@ export function SheetChrome({
     <>
       <header className={styles.head}>
         <h2>{title}</h2>
+        {headerAction}
       </header>
       <div className={styles.body}>{children}</div>
       {footer === undefined ? null : <div className={styles.foot}>{footer}</div>}

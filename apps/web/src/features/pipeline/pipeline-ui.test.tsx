@@ -1,7 +1,7 @@
 /**
  * @vitest-environment jsdom
  */
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { NextIntlClientProvider } from 'next-intl';
 import type { ReactNode } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -49,12 +49,12 @@ describe('pipeline board controls', () => {
     );
     renderCard({ onDelete, onSave });
 
+    fireEvent.click(screen.getByText('Ada'));
     fireEvent.click(screen.getByRole('button', { name: 'Delete card' }));
-    expect(screen.getByText('Delete this card?')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    const confirm = screen.getByText('Delete this card?').closest('section');
+    expect(confirm).toBeTruthy();
+    fireEvent.click(within(confirm as HTMLElement).getByRole('button', { name: 'Cancel' }));
     expect(onDelete).not.toHaveBeenCalled();
-
-    fireEvent.click(screen.getByRole('button', { name: 'Edit card' }));
     fireEvent.change(screen.getByLabelText('Amount'), { target: { value: '40' } });
     fireEvent.click(screen.getByLabelText('Contact'));
     fireEvent.click(await screen.findByRole('option', { name: 'Nare' }));
@@ -134,7 +134,7 @@ describe('pipeline board controls', () => {
     const onMove = vi.fn();
     renderColumn({ onConvertCard: onConvert, onSaveCard: onSave, onMoveCard: onMove });
 
-    fireEvent.click(screen.getAllByRole('button', { name: 'Edit card' })[0] ?? document.body);
+    fireEvent.click(screen.getByText('Ada'));
     fireEvent.click(screen.getByRole('button', { name: 'Convert to deal' }));
     expect(onConvert).toHaveBeenCalledWith(cardId);
 

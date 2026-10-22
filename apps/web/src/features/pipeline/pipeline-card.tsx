@@ -1,11 +1,18 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useEffect, useState, type DragEvent as ReactDragEvent, type FormEvent } from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent as ReactDragEvent,
+  type FormEvent,
+  type MouseEvent as ReactMouseEvent,
+} from 'react';
 
 import { listContacts } from '../contacts/contacts-api';
 import type { Contact } from '../contacts/contact';
-import { Pencil, X } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 
 import { ConfirmDialog } from '../../ui/confirm/confirm-dialog';
 import { useSheetDismiss } from '../../ui/overlay/sheet-dismiss';
@@ -50,13 +57,17 @@ export function PipelineCardView({
   onConvert: () => void;
 }) {
   const t = useTranslations('pipeline');
-  const [confirming, setConfirming] = useState(false);
   const [editing, setEditing] = useState(false);
+  const dragged = useRef(false);
   return (
     <article
       className={styles.card}
       draggable={!editing}
-      onDragStart={(event) => startCardDrag(event, card.id, styles.cardDragging)}
+      onDragStart={(event) => {
+        startCardDrag(event, card.id, styles.cardDragging);
+        dragged.current = !event.defaultPrevented;
+      }}
+      onClick={(event) => openCard(event, dragged, () => setEditing(true))}
     >
       <div className={styles.cardTop}>
       <strong className={styles.cardTitle}>{card.title}</strong>
@@ -83,22 +94,6 @@ export function PipelineCardView({
           onClick={() => onSave({ priority: card.priority === 'URGENT' ? 'NORMAL' : 'URGENT' })}
         >
           <FlagIcon />
-        </button>
-        <button
-          type="button"
-          className={styles.iconButton}
-          aria-label={t('editCard')}
-          onClick={() => setEditing(true)}
-        >
-          <Pencil size={14} aria-hidden="true" />
-        </button>
-        <button
-          type="button"
-          className={styles.iconButton}
-          aria-label={t('deleteCard')}
-          onClick={() => setConfirming(true)}
-        >
-          <X size={14} aria-hidden="true" />
         </button>
       </span>
       <span className={styles.cardIcons}>
@@ -143,16 +138,6 @@ export function PipelineCardView({
         </button>
       </div>
       <CardStatus card={card} statuses={statuses} onSave={onSave} />
-      {confirming ? (
-        <ConfirmDialog
-          title={t('deleteCard')}
-          message={t('confirmDelete')}
-          confirmLabel={t('deleteCard')}
-          cancelLabel={t('cancel')}
-          onConfirm={onDelete}
-          onClose={() => setConfirming(false)}
-        />
-      ) : null}
       {editing ? (
         <CardEditor
           card={card}
@@ -160,6 +145,7 @@ export function PipelineCardView({
           userId={userId}
           statuses={statuses}
           onSave={onSave}
+          onDelete={onDelete}
           onConvert={onConvert}
           onClose={() => setEditing(false)}
         />
@@ -237,6 +223,7 @@ function CardEditor({
   userId,
   statuses,
   onSave,
+  onDelete,
   onConvert,
   onClose,
 }: {
@@ -245,17 +232,29 @@ function CardEditor({
   userId: string | null;
   statuses: PipelineBoard['statuses'];
   onSave: (patch: CardUpdate) => void;
+  onDelete: () => void;
   onConvert: () => void;
   onClose: () => void;
 }) {
   const t = useTranslations('pipeline');
   const contacts = useContacts();
+  const [confirming, setConfirming] = useState(false);
   return (
     <OverlayPortal onDismiss={onClose}>
       <SheetFrame label={t('editCard')} closeLabel={t('close')}>
         <SheetChrome
           as="form"
           title={t('editCard')}
+          headerAction={
+            <button
+              type="button"
+              className={styles.sheetDelete}
+              aria-label={t('deleteCard')}
+              onClick={() => setConfirming(true)}
+            >
+              <Trash2 size={16} aria-hidden="true" />
+            </button>
+          }
           onSubmit={(event) => submitCard(event, onSave, onClose)}
           footer={
             <>
@@ -271,6 +270,16 @@ function CardEditor({
             </>
           }
         >
+          {confirming ? (
+            <ConfirmDialog
+              title={t('deleteCard')}
+              message={t('confirmDelete')}
+              confirmLabel={t('deleteCard')}
+              cancelLabel={t('cancel')}
+              onConfirm={onDelete}
+              onClose={() => setConfirming(false)}
+            />
+          ) : null}
           <TextField name="title" label={t('cardTitle')} defaultValue={card.title} required />
           <TextField name="company" label={t('company')} defaultValue={card.company} />
           <TextField name="amount" label={t('amount')} defaultValue={String(card.amount)} inputMode="numeric" />
@@ -422,6 +431,22 @@ function SheetCancel({ label }: { label: string }) {
       {label}
     </button>
   );
+}
+
+function openCard(
+  event: ReactMouseEvent<HTMLElement>,
+  dragged: { current: boolean },
+  edit: () => void,
+): void {
+  if (dragged.current) {
+    dragged.current = false;
+    return;
+  }
+  const target = event.target;
+  if (target instanceof Element && target.closest('button, a, input, textarea, select, label')) {
+    return;
+  }
+  edit();
 }
 
 function startCardDrag(event: ReactDragEvent<HTMLElement>, cardId: string, draggingClass: string): void {

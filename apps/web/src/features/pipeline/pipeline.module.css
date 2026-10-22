@@ -684,6 +684,22 @@
   font-weight: 650;
 }
 
+.sheetDelete {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  min-height: 32px;
+  margin-left: auto;
+  margin-right: -18px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #c81d43;
+  box-shadow: none;
+}
+
 .sheetCancel {
   background: #1c2410;
   color: #fff;
